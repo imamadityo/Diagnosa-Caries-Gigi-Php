@@ -1,0 +1,35 @@
+<?php
+			$sqlp = mysqli_query($kon, "SELECT * from penyakit");
+            $rowp = mysqli_num_rows($sqlp);
+            while($rp = mysqli_fetch_array($sqlp)){
+            	$kode_p[]= $rp['nilai_p'];
+            	$idp[]= $rp['kode_p'];
+            	$nama[] = $rp['nama_p'];
+            	$idpenyakit[] = $rp['idp'];
+            }
+            for ($i=0; $i < $rowp ; $i++) { 
+            	$tot[$i] = 1; 
+            	$penyakit = mysqli_query($kon, "SELECT * FROM diagnosa where id_pasien='$_GET[id_pasien]' and pilih IS NOT NULL AND pilih != ''")
+                                or die('Ada kesalahan pada query tampil Data barang: ' . mysqli_error($kon));
+				while ($data = mysqli_fetch_assoc($penyakit)) {
+
+					$gejala[$i] = mysqli_query($kon, "SELECT * FROM nilai_probabilitas where idg='$data[pilih]' and idp='$idp[$i]' ")
+		                                or die('Ada kesalahan pada query tampil Data barang: ' . mysqli_error($kon));
+						while ($row[$i]=mysqli_fetch_row($gejala[$i]))
+					{
+						$tot[$i]=  ($tot[$i]  * $row[$i][5]) ;
+				    }
+				}
+				$total = $tot[$i] * $kode_p[$i];
+				$semua[] = $total;
+            }
+            	$tambah = array_sum($semua);
+            	$banyak = count($semua);
+
+            	for ($i=0; $i < $banyak; $i++) { 
+            		echo "". $nama[$i]."=".(($semua[$i] / $tambah) * 100)."%"."<br>";
+            		$proses = ($semua[$i] / $tambah) * 100;
+
+            		mysqli_query($kon, "INSERT into hasil (id_pasien, idp, proses) values ('$_GET[id_pasien]','$idpenyakit[$i]', '$proses')");
+            	}
+		?>
